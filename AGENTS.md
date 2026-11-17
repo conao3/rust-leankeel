@@ -56,7 +56,7 @@ The properties proved in these blocks are:
 | `fixable_iff` | A diagnostic is fixable exactly when selected and at warn or deny level. |
 
 `audit/` is a separate Lake package using
-[lean-assay](https://github.com/conao3/lean-assay) at the revision pinned in its
+[leanassay](https://github.com/conao3/lean-leanassay) at the revision pinned in its
 manifest. It audits all seven generated functions called by Rust: `pieces`,
 `chosen`, `shift`, `accept`, `level`, `fixable` and `exitCode`. Each function has
 an `#assay` command in `audit/Audit/`, grouped by its source block. Add a useful
