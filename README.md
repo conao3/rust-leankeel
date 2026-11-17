@@ -123,6 +123,7 @@ built-in default:
 | --- | --- | --- | --- |
 | `linter.unusedVariables` | `linter.unusedVariables` | warn | default |
 | `linter.unusedSimpArgs` | `linter.unusedSimpArgs` | warn | default |
+| `linter.unnecessarySimpa` | `linter.unnecessarySimpa` | warn | default |
 | `Lean.Linter.deprecatedAttr` | `linter.deprecated` | warn | default |
 | `hasSorry` | | warn | none |
 | `lean.tryThis` | | warn | opt-in |
@@ -185,6 +186,17 @@ into Rust by [leanfran](https://github.com/conao3/lean-leanfran):
 | `src/plan.rs` | which edits are applied, the pieces of the new text, where a rejected fix moves after other edits | kept pieces lie inside the text and in increasing order; kept plus removed bytes equal the text; the inserted edits are exactly the chosen ones; an edit that touches a span invalidates it |
 | `src/verdict.rs` | whether a change is kept | a kept change has fewer diagnostics and no diagnostic occurs more often than before |
 | `src/policy.rs` | the level of a rule, whether it is fixed, the exit status | errors are denied; a setting wins over the default; an allowed rule is never fixed; the status is 0 exactly when nothing is denied |
+
+## Related tools
+
+Leankeel adds no checks. It sits after the tools that detect and reuses what they report.
+
+| Tool | Role |
+| --- | --- |
+| Lean 4.35 and Lake | The linters, `lake lint` with the built-in environment and text linters, `lake lint --record-exceptions` to silence existing warnings in place, and `lake shake --fix` for imports. |
+| Batteries and Mathlib | Environment linters (`#lint`, `runLinter`), syntax linters and the text-based style linter. Mathlib's `scripts/fix_deprecations.py` and `scripts/fix_unused_simp_args.py` rewrite sources from the warning text of a build log. |
+| [lean-fmt](https://github.com/jcreinhold/lean-fmt) | A formatter and linter with its own rule set, rule codes, configuration, JSON and SARIF output, and `check --fix` for its rules. |
+| Leankeel | Applies the edit that Lean computed for a message, with the range and replacement taken from the message itself, for every linter that attaches a suggestion, and keeps the edit only when re-elaboration confirms it. |
 
 ## Development
 

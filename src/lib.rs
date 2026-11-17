@@ -150,6 +150,13 @@ pub const RULES: &[Rule] = &[
         summary: "A simp argument is never used; the fix removes it from the argument list.",
     },
     Rule {
+        id: "linter.unnecessarySimpa",
+        option: Some("linter.unnecessarySimpa"),
+        default: Level::Warn,
+        fix: FixSupport::Default,
+        summary: "`simpa` closes a goal that `simp` already closes; the fix writes `simp`.",
+    },
+    Rule {
         id: "Lean.Linter.deprecatedAttr",
         option: Some("linter.deprecated"),
         default: Level::Warn,

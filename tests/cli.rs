@@ -524,3 +524,17 @@ fn readme_example() {
     assert!(fixed.ends_with("  simp [List.append_nil]\n"));
     std::fs::remove_dir_all(dir).unwrap();
 }
+
+#[test]
+fn unnecessary_simpa_becomes_simp() {
+    let source = "example (xs : List Nat) : xs ++ [] = xs := by\n  simpa\n";
+    assert_eq!(rules(&check(source)), ["linter.unnecessarySimpa"]);
+    let fixed = fix(source, &[]);
+    assert_eq!(
+        fixed["Source"],
+        "example (xs : List Nat) : xs ++ [] = xs := by\n  simp\n"
+    );
+    assert_eq!(fixed["Diagnostics"], serde_json::json!([]));
+    let needed = "example (a b : Nat) (h : a = b) : a + 0 = b := by\n  simpa using h\n";
+    assert_eq!(rules(&check(needed)), Vec::<&str>::new());
+}
