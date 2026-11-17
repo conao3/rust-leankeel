@@ -1,0 +1,5 @@
+name = "ext"
+defaultTargets = ["Ext"]
+
+[[lean_lib]]
+name = "Ext"

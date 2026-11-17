@@ -46,6 +46,7 @@ fails when they differ from what the build generates.
 
 - `nix develop --command make check`: adapter build, `nix fmt -- --ci`, Clippy, `lake -d lean build`
   for the theorems, the generated-code check, unit tests and the CLI tests in `tests/cli.rs`
-  (which run the adapter, including a Lake project under `tests/fixtures/project`).
+  (which run the adapter, including the Lake projects under `tests/fixtures/`: package options and
+  imports in `project`, a linter defined by the project and module-system files in `extension`).
 - `nix build`: the package with the adapter; its check phase runs the same tests.
 - `result/bin/leankeel source check-source --file <file>` exercises the installed binary.

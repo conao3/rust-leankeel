@@ -538,3 +538,84 @@ fn unnecessary_simpa_becomes_simp() {
     let needed = "example (a b : Nat) (h : a = b) : a + 0 = b := by\n  simpa using h\n";
     assert_eq!(rules(&check(needed)), Vec::<&str>::new());
 }
+
+#[test]
+fn a_linter_defined_by_the_project_is_a_rule_with_a_fix() {
+    let dir = workspace("extension");
+    copy_tree(
+        &Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/extension"),
+        &dir,
+    );
+    let run = leankeel_in(
+        &dir,
+        &["source", "check-source", "--file", "Ext/Use.lean"],
+        "",
+    );
+    assert_eq!(run.code, 0, "{}\n{}", run.stdout, run.stderr);
+    let report = run.json();
+    assert_eq!(rules(&report), ["linter.ext.retired", "linter.ext.retired"]);
+    assert_eq!(
+        report["Diagnostics"][0]["Fixes"][0]["NewText"],
+        "Ext.current"
+    );
+
+    let args = ["source", "fix-source", "--file", "Ext/Use.lean", "--write"];
+    let run = leankeel_in(&dir, &args, "");
+    assert_eq!(run.json()["Changed"], false);
+    let args = [
+        "source",
+        "fix-source",
+        "--file",
+        "Ext/Use.lean",
+        "--write",
+        "--rules",
+        "linter.ext.retired",
+    ];
+    let run = leankeel_in(&dir, &args, "");
+    assert_eq!(run.json()["Summary"]["Applied"], 2);
+    assert_eq!(
+        std::fs::read_to_string(dir.join("Ext/Use.lean")).unwrap(),
+        "import Ext.Lint\n\ndef twice : Nat := Ext.current + Ext.current\n"
+    );
+    let run = leankeel_in(
+        &dir,
+        &["source", "check-source", "--file", "Ext/Use.lean"],
+        "",
+    );
+    assert_eq!(rules(&run.json()), Vec::<&str>::new());
+    std::fs::remove_dir_all(dir).unwrap();
+}
+
+#[test]
+fn files_of_the_module_system_are_checked_and_fixed() {
+    let source = "module\n\npublic def first (x y : Nat) : Nat := x\n";
+    assert_eq!(rules(&check(source)), ["linter.unusedVariables"]);
+    assert_eq!(
+        fix(source, &[])["Source"],
+        "module\n\npublic def first (x _y : Nat) : Nat := x\n"
+    );
+
+    let dir = workspace("modules");
+    copy_tree(
+        &Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/extension"),
+        &dir,
+    );
+    let args = [
+        "source",
+        "fix-source",
+        "--paths",
+        "Ext/ModBase.lean",
+        "Ext/ModUse.lean",
+        "--write",
+    ];
+    let run = leankeel_in(&dir, &args, "");
+    assert_eq!(run.code, 0, "{}\n{}", run.stdout, run.stderr);
+    let report = run.json();
+    assert_eq!(report["Summary"]["Applied"], 1);
+    assert_eq!(report["Summary"]["Warn"], 0);
+    assert_eq!(
+        std::fs::read_to_string(dir.join("Ext/ModUse.lean")).unwrap(),
+        "module\n\npublic import Ext.ModBase\n\npublic def Ext.skip (n _m : Nat) : Nat := Ext.next n\n"
+    );
+    std::fs::remove_dir_all(dir).unwrap();
+}

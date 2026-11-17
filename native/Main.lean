@@ -35,7 +35,6 @@ def position (map : FileMap) (pos : String.Pos.Raw) : Json :=
   let p := map.toPosition pos
   Json.mkObj [("Line", p.line), ("Column", p.column), ("Offset", pos.byteIdx)]
 
-/-- Removes the hints of a message, whose text embeds the suggested replacement. -/
 partial def withoutHints : MessageData → MessageData
   | .tagged `hint _ => .nil
   | .tagged tag message => .tagged tag (withoutHints message)

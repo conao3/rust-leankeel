@@ -189,7 +189,10 @@ into Rust by [leanfran](https://github.com/conao3/lean-leanfran):
 
 ## Related tools
 
-Leankeel adds no checks. It sits after the tools that detect and reuses what they report.
+Leankeel adds no checks. It reports the messages that Lean produces while it elaborates a file,
+which covers the linters of Lean, of imported libraries and of the project itself. Checks that
+run outside elaboration keep their own commands: environment linters (`#lint`, `runLinter`,
+Lake's built-in environment linters), text-based linters and `lake shake`.
 
 | Tool | Role |
 | --- | --- |
