@@ -1,0 +1,8 @@
+name = "keel"
+defaultTargets = ["Keel"]
+
+[leanOptions]
+weak.linter.missingDocs = true
+
+[[lean_lib]]
+name = "Keel"

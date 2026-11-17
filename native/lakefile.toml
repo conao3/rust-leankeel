@@ -1,0 +1,8 @@
+name = "leankeel-adapter"
+version = "0.1.0"
+defaultTargets = ["leankeel-adapter"]
+
+[[lean_exe]]
+name = "leankeel-adapter"
+root = "Main"
+supportInterpreter = true
