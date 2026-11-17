@@ -167,5 +167,9 @@ leanfran::lean! {
       have h3 : ¬ edit.stop ≤ span.start := by omega
       have h4 : ¬ span.stop ≤ edit.start := by omega
       simp [shiftFrom, h3, h4]
+
+    theorem pieces_chosen (len : Nat) (edits : List Span) :
+        inserted (pieces len edits) = chosen len edits :=
+      inserted_eq_chosen len edits 0 0
     "#
 }

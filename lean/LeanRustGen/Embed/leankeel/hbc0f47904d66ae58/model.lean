@@ -21,4 +21,11 @@ theorem accept_no_new (before after : List String) (h : accept before after = tr
 theorem accept_irreflexive (messages : List String) : accept messages messages = false := by
   simp [accept]
 
+theorem accept_removing_head (key : String) (rest : List String) :
+    accept (key :: rest) rest = true := by
+  simp only [accept, noNew, List.length_cons, Nat.lt_succ_self, decide_true,
+    Bool.true_and, List.all_eq_true, decide_eq_true_eq]
+  intro other _
+  exact List.count_le_count_cons
+
 end model

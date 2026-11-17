@@ -45,5 +45,18 @@ leanfran::lean! {
     theorem exit_is_zero_or_254 (levels : List Level) : exitCode levels = 0 ∨ exitCode levels = 254 := by
       unfold exitCode
       split <;> simp
+
+    theorem level_defaults (rule : String) :
+        level [] rule .warning = .warn ∧ level [] rule .information = .allow := by
+      constructor <;> rfl
+
+    theorem level_override (rule : String) (chosen : Level) (rest : List (String × Level))
+        (severity : Severity) (h : severity ≠ .error) :
+        level ((rule, chosen) :: rest) rule severity = chosen := by
+      cases severity <;> simp_all [level, first_setting_wins]
+
+    theorem fixable_iff (level : Level) (selected : Bool) :
+        fixable level selected = true ↔ selected = true ∧ (level = .warn ∨ level = .deny) := by
+      cases level <;> cases selected <;> decide
     "#
 }

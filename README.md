@@ -211,6 +211,9 @@ nix build
 `make check` builds the adapter, checks formatting, runs Clippy, checks the Lean theorems,
 confirms that the generated Rust in `.leanfran/cache/` and `lean/` matches the source, and runs
 the tests.
+The `audit/` Lake package runs [lean-assay](https://github.com/conao3/lean-assay)
+on all seven generated functions called by Rust; `make check` fails on theorem
+coverage gaps, unrefuted mutations that change the output, and vacuous hypotheses.
 
 ## License
 

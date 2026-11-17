@@ -3,3 +3,4 @@
 /native/.lake
 /lean/.lake
 /test-out
+/audit/.lake

@@ -167,4 +167,8 @@ theorem shift_touched (span edit : Span) (inserted added removed : Nat)
   have h4 : ¬ span.stop ≤ edit.start := by omega
   simp [shiftFrom, h3, h4]
 
+theorem pieces_chosen (len : Nat) (edits : List Span) :
+    inserted (pieces len edits) = chosen len edits :=
+  inserted_eq_chosen len edits 0 0
+
 end model

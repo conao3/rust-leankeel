@@ -25,6 +25,60 @@ and generated into Rust. Add to these blocks when a rule is deterministic and in
 - `src/verdict.rs`: `accept` keeps a change only when diagnostics shrink without a new one.
 - `src/policy.rs`: `level`, `fixable` and `exitCode`.
 
+The properties proved in these blocks are:
+
+| Theorem | Property |
+| --- | --- |
+| `fits_iff` | An edit fits exactly when its endpoints are ordered, at or after the cursor, and within the source. |
+| `pieces_nil` | With zero edits, the whole source is kept. |
+| `piecesFrom_valid` | Every kept slice has ordered endpoints within the source. |
+| `kept_plus_removed` | Kept and removed lengths add up to the unprocessed source length. |
+| `inserted_eq_chosen` | The planner's inserted indices match its selected edits at every cursor and index. |
+| `increasing_of_le` | An ordered piece sequence remains ordered from an earlier cursor. |
+| `piecesFrom_increasing` | Kept slices follow source order without overlap. |
+| `shift_nil` | An empty edit list preserves a rejected fix's span. |
+| `shift_before` | An edit after a rejected fix preserves its span. |
+| `shift_after` | An edit before a rejected fix shifts both endpoints by its length change. |
+| `shift_touched` | An overlapping edit invalidates the rejected fix in the shift traversal. |
+| `pieces_chosen` | The inserted indices in the emitted text match the applied edits reported by Rust. |
+| `accept_shrinks` | An accepted change strictly reduces the number of diagnostics. |
+| `accept_no_new` | An accepted change preserves or reduces the count of every diagnostic key. |
+| `accept_irreflexive` | An unchanged diagnostic list is rejected. |
+| `accept_removing_head` | Removing the first diagnostic while retaining the rest is accepted. |
+| `error_is_deny` | Lean errors always have deny level. |
+| `first_setting_wins` | The first matching configuration entry determines the override. |
+| `configured_warning` | A configured warning has the configured level. |
+| `allowed_is_not_fixed` | Allow-level diagnostics are excluded from fixes. |
+| `exit_zero_iff` | Exit status is zero exactly when there is no deny-level diagnostic. |
+| `exit_is_zero_or_254` | Diagnostic exit status is either zero or 254. |
+| `level_defaults` | Unconfigured warnings default to warn and information to allow. |
+| `level_override` | The first matching setting applies to both non-error severities. |
+| `fixable_iff` | A diagnostic is fixable exactly when selected and at warn or deny level. |
+
+`audit/` is a separate Lake package using
+[lean-assay](https://github.com/conao3/lean-assay) at the revision pinned in its
+manifest. It audits all seven generated functions called by Rust: `pieces`,
+`chosen`, `shift`, `accept`, `level`, `fixable` and `exitCode`. Each function has
+an `#assay` command in `audit/Audit/`, grouped by its source block. Add a useful
+theorem and an audit command with each generated function used by Rust.
+`lake -d audit build --wfail` rejects missing theorems, functions whose mutants
+are all unrefuted, holes, and hypotheses without a satisfying sampled input.
+The audit mutates the named function's body; helper properties are listed above
+with their own scope. Equivalent results mean equal outputs on sampled inputs.
+
+| Audited function | Mutants | Refuted | Holes | Untested | Equivalent | Ill-typed or failed at runtime |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| `pieces` | 4 | 4 | 0 | 0 | 0 | 0 |
+| `chosen` | 4 | 4 | 0 | 0 | 0 | 0 |
+| `shift` | 4 | 4 | 0 | 0 | 0 | 0 |
+| `accept` | 7 | 7 | 0 | 0 | 0 | 0 |
+| `level` | 9 | 9 | 0 | 0 | 0 | 0 |
+| `fixable` | 6 | 6 | 0 | 0 | 0 | 0 |
+| `exitCode` | 6 | 6 | 0 | 0 | 0 | 0 |
+| Total | 40 | 40 | 0 | 0 | 0 | 0 |
+
+All seven Rust entry points are included; exclusions and timeouts are both zero.
+
 Rust owns the command line, configuration, file and process I/O, `lake setup-file` and
 `lake env`. `src/lib.rs` calls the generated functions on the real path; do not reimplement
 their logic in Rust.
@@ -45,7 +99,8 @@ fails when they differ from what the build generates.
 ## Verification
 
 - `nix develop --command make check`: adapter build, `nix fmt -- --ci`, Clippy, `lake -d lean build`
-  for the theorems, the generated-code check, unit tests and the CLI tests in `tests/cli.rs`
+  for the theorems, `lake -d audit build --wfail` for their mutation audit,
+  the generated-code check, unit tests and the CLI tests in `tests/cli.rs`
   (which run the adapter, including the Lake projects under `tests/fixtures/`: package options and
   imports in `project`, a linter defined by the project and module-system files in `extension`).
 - `nix build`: the package with the adapter; its check phase runs the same tests.
