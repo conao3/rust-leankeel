@@ -1,0 +1,44 @@
+{
+  "Mathlib": {
+    "Tag": "v4.35.0",
+    "Commit": "56a005855ea17e0b0958f73ec801ae140b0a1679"
+  },
+  "FixRules": [
+    "linter.unusedVariables",
+    "linter.unusedSimpArgs",
+    "linter.unnecessarySimpa",
+    "Lean.Linter.deprecatedAttr",
+    "lean.tryThis"
+  ],
+  "LeanOptions": [
+    "\"linter.unusedVariables.analyzeTactics\" = true"
+  ],
+  "Files": 8624,
+  "Analyzed": 8624,
+  "Failed": 0,
+  "TimedOut": 0,
+  "FilesChanged": 1007,
+  "FilesWithRejected": 34,
+  "Fixes": {
+    "Attempted": 2198,
+    "Applied": 2152,
+    "Rejected": 46,
+    "ApplicationRatePercent": 97.91
+  },
+  "FixesByRule": [
+    {
+      "Rule": "linter.unusedVariables",
+      "Applied": 2152,
+      "Rejected": 46,
+      "ApplicationRatePercent": 97.91
+    }
+  ],
+  "RemainingDiagnostics": [
+    {
+      "Rule": "linter.unusedVariables",
+      "Level": "warn",
+      "Count": 46,
+      "Files": 34
+    }
+  ]
+}

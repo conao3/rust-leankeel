@@ -1,0 +1,2 @@
+[lean-options]
+"linter.unusedVariables.analyzeTactics" = true

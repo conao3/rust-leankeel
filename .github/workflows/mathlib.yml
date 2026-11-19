@@ -1,0 +1,44 @@
+name: Mathlib
+on:
+  pull_request:
+    paths:
+      - .github/workflows/mathlib.yml
+      - Cargo.lock
+      - native/**
+      - results/mathlib/**
+      - scripts/mathlib/**
+      - src/**
+  workflow_dispatch:
+    inputs:
+      shards:
+        description: Run every Nth file (1 measures all of Mathlib)
+        default: "1"
+permissions:
+  contents: read
+jobs:
+  measure:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - name: Install elan
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh \
+            | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - run: scripts/mathlib/setup.sh "$RUNNER_TEMP/work"
+      - name: Measure
+        env:
+          SHARDS: ${{ inputs.shards || '128' }}
+        run: |
+          for profile in default analyze-tactics; do
+            config=scripts/mathlib/$profile.toml
+            [ -f "$config" ] || config=
+            CONFIG=${config:+$PWD/$config} scripts/mathlib/measure.sh \
+              "$RUNNER_TEMP/work" "$RUNNER_TEMP/$profile.jsonl" 0 "$SHARDS"
+            scripts/mathlib/compare.sh "$RUNNER_TEMP/$profile.jsonl" \
+              "results/mathlib/$profile/files.jsonl"
+            scripts/mathlib/summarize.sh "$RUNNER_TEMP/$profile.jsonl" \
+              "$RUNNER_TEMP/results/$profile" $config
+            cat "$RUNNER_TEMP/results/$profile/summary.md" >> "$GITHUB_STEP_SUMMARY"
+          done
