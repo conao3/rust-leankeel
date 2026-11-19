@@ -16,7 +16,7 @@ shards=${4:-1}
 mathlib=$work/mathlib4
 test "$(git -C "$mathlib" rev-parse HEAD)" = "$MATHLIB_COMMIT"
 
-export MATHLIB=$mathlib RULES=${RULES:-$MATHLIB_RULES} CONFIG=${CONFIG:-}
+export MATHLIB=$mathlib RULES=${RULES:-$MATHLIB_RULES} CONFIG=${CONFIG:+$(realpath "$CONFIG")}
 export LEANKEEL=$root/target/release/leankeel
 export LEANKEEL_ADAPTER=$work/adapter/.lake/build/bin/leankeel-adapter
 export FILE_TIMEOUT=${FILE_TIMEOUT:-3600}
