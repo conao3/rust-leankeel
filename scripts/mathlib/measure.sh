@@ -14,6 +14,10 @@ out=${2:?usage: measure.sh WORKDIR OUT.jsonl [SHARD SHARDS]}
 shard=${3:-0}
 shards=${4:-1}
 mathlib=$work/mathlib4
+if ! [ "$shards" -ge 1 ] || ! [ "$shard" -ge 0 ] || ! [ "$shard" -lt "$shards" ]; then
+  echo "measure.sh: SHARD must be in 0..SHARDS-1" >&2
+  exit 252
+fi
 test "$(git -C "$mathlib" rev-parse HEAD)" = "$MATHLIB_COMMIT"
 
 export MATHLIB=$mathlib RULES=${RULES:-$MATHLIB_RULES} CONFIG=${CONFIG:+$(realpath "$CONFIG")}
