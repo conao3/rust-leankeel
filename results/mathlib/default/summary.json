@@ -1,0 +1,28 @@
+{
+  "Mathlib": {
+    "Tag": "v4.35.0",
+    "Commit": "56a005855ea17e0b0958f73ec801ae140b0a1679"
+  },
+  "FixRules": [
+    "linter.unusedVariables",
+    "linter.unusedSimpArgs",
+    "linter.unnecessarySimpa",
+    "Lean.Linter.deprecatedAttr",
+    "lean.tryThis"
+  ],
+  "LeanOptions": [],
+  "Files": 8624,
+  "Analyzed": 8624,
+  "Failed": 0,
+  "TimedOut": 0,
+  "FilesChanged": 0,
+  "FilesWithRejected": 0,
+  "Fixes": {
+    "Attempted": 0,
+    "Applied": 0,
+    "Rejected": 0,
+    "ApplicationRatePercent": null
+  },
+  "FixesByRule": [],
+  "RemainingDiagnostics": []
+}

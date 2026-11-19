@@ -201,6 +201,38 @@ Lake's built-in environment linters), text-based linters and `lake shake`.
 | [lean-fmt](https://github.com/jcreinhold/lean-fmt) | A formatter and linter with its own rule set, rule codes, configuration, JSON and SARIF output, and `check --fix` for its rules. |
 | Leankeel | Applies the edit that Lean computed for a message, with the range and replacement taken from the message itself, for every linter that attaches a suggestion, and keeps the edit only when re-elaboration confirms it. |
 
+## Mathlib measurement
+
+`scripts/mathlib/` measures how many of the fixes that Lean suggests across Mathlib Leankeel
+applies. It pins Mathlib v4.35.0 (`56a005855ea17e0b0958f73ec801ae140b0a1679`), whose toolchain
+is Leankeel's, fetches the upstream build cache with `lake exe cache get` instead of building
+Mathlib, and runs `leankeel source fix-source` without `--write` on every `Mathlib/**/*.lean`
+file with the default fix rules and `lean.tryThis`, under the options Mathlib builds with.
+
+```console
+scripts/mathlib/setup.sh work
+scripts/mathlib/measure.sh work files.jsonl
+scripts/mathlib/summarize.sh files.jsonl results/mathlib/default
+CONFIG=$PWD/scripts/mathlib/analyze-tactics.toml scripts/mathlib/measure.sh work analyze.jsonl
+scripts/mathlib/summarize.sh analyze.jsonl results/mathlib/analyze-tactics scripts/mathlib/analyze-tactics.toml
+```
+
+Mathlib keeps its build free of warnings, so under its own options there is nothing to fix:
+`results/mathlib/default/` records the run with no extra option. `results/mathlib/analyze-tactics/`
+adds `linter.unusedVariables.analyzeTactics`, which Lean leaves off by default and which also
+reports variables that are unused in tactic proofs.
+On v4.35.0 the first finds no diagnostic in 8624 files; with the second, Leankeel applies 2152
+of 2198 fixes (97.91%) in 1007 files and rejects 46 whose edit leaves a new diagnostic or as many.
+
+`setup.sh` needs `elan`, `git` and `cargo`; `measure.sh` needs `jq`, `bc` and `timeout`, reads
+`JOBS` for its parallelism and `CONFIG` for a Leankeel configuration, and takes a shard index and
+count to measure every Nth file. Each `files.jsonl` has one record per file: `Path`, `Exit`,
+`Seconds`, then either `Error` or the `Summary` of `fix-source`, the diagnostics left after fixing
+by rule and level, and the `Applied` and `Rejected` fixes. `summary.json` and `summary.md` total
+them; the application rate is applied fixes over applied and rejected fixes. The `Mathlib`
+workflow measures every 128th file with both configurations on pull requests, or every Nth on a
+manual run, and fails when a record differs from the committed one other than in `Seconds`.
+
 ## Development
 
 ```console
