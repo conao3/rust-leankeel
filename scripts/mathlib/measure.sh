@@ -18,6 +18,10 @@ if ! [ "$shards" -ge 1 ] || ! [ "$shard" -ge 0 ] || ! [ "$shard" -lt "$shards" ]
   echo "measure.sh: SHARD must be in 0..SHARDS-1" >&2
   exit 252
 fi
+if [ -n "${LIMIT:-}" ] && ! [[ $LIMIT =~ ^[1-9][0-9]*$ ]]; then
+  echo "measure.sh: LIMIT must be a positive integer" >&2
+  exit 252
+fi
 test "$(git -C "$mathlib" rev-parse HEAD)" = "$MATHLIB_COMMIT"
 
 CONFIG=${CONFIG:+$(realpath -e "$CONFIG")}
