@@ -20,7 +20,8 @@ if ! [ "$shards" -ge 1 ] || ! [ "$shard" -ge 0 ] || ! [ "$shard" -lt "$shards" ]
 fi
 test "$(git -C "$mathlib" rev-parse HEAD)" = "$MATHLIB_COMMIT"
 
-export MATHLIB=$mathlib RULES=${RULES:-$MATHLIB_RULES} CONFIG=${CONFIG:+$(realpath "$CONFIG")}
+CONFIG=${CONFIG:+$(realpath -e "$CONFIG")}
+export MATHLIB=$mathlib RULES=${RULES:-$MATHLIB_RULES} CONFIG
 export LEANKEEL=$root/target/release/leankeel
 export LEANKEEL_ADAPTER=$work/adapter/.lake/build/bin/leankeel-adapter
 export FILE_TIMEOUT=${FILE_TIMEOUT:-3600}
