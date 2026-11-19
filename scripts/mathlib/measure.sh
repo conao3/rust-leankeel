@@ -54,6 +54,5 @@ one() {
 export -f one
 
 git -C "$mathlib" ls-files 'Mathlib/*.lean' | LC_ALL=C sort \
-  | awk -v s="$shard" -v n="$shards" '(NR - 1) % n == s' \
-  | head -n "${LIMIT:--0}" \
+  | awk -v s="$shard" -v n="$shards" -v l="${LIMIT:-0}" '(NR - 1) % n == s && (l == 0 || ++c <= l)' \
   | xargs -P "${JOBS:-$(nproc)}" -I{} bash -c 'one "$1"' _ {} >"$out"
