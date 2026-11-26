@@ -1,10 +1,36 @@
+<p align="center">
+  <img src="docs/assets/banner.png" alt="Leankeel: lint Lean 4 source and apply the fixes Lean itself suggests" width="880">
+</p>
+
+<p align="center"><strong>A Lean 4 linter that applies the fixes Lean itself suggests and keeps only the ones re-elaboration confirms</strong></p>
+
+<p align="center">
+  <a href="https://github.com/conao3/rust-leankeel/actions/workflows/ci.yml"><img src="https://github.com/conao3/rust-leankeel/actions/workflows/ci.yml/badge.svg?branch=master" alt="CI"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/conao3/rust-leankeel" alt="License: Apache-2.0"></a>
+  <a href="Cargo.toml"><img src="https://img.shields.io/badge/Rust-edition%202024-orange" alt="Rust edition 2024"></a>
+  <a href="lean-toolchain"><img src="https://img.shields.io/badge/Lean-v4.35.0-blue" alt="Lean v4.35.0"></a>
+  <a href="https://github.com/conao3/rust-leankeel/stargazers"><img src="https://img.shields.io/github/stars/conao3/rust-leankeel?style=flat" alt="GitHub stars"></a>
+</p>
+
+<p align="center">
+  <a href="#run">Run</a> |
+  <a href="#commands">Commands</a> |
+  <a href="#rules">Rules</a> |
+  <a href="#configuration">Configuration</a> |
+  <a href="#how-a-fix-is-verified">Verification</a> |
+  <a href="#design">Design</a> |
+  <a href="#related-tools">Related tools</a> |
+  <a href="#mathlib-measurement">Mathlib measurement</a> |
+  <a href="#development">Development</a>
+</p>
+
 # Leankeel
 
 Leankeel lints Lean 4 source and applies the fixes that Lean itself suggests. Lean and its
-linters already say what to change: an unused variable comes with `_y`, a deprecated name with
+linters tell you what to change: an unused variable comes with `_y`, a deprecated name with
 its replacement, an unused simp argument with the shorter argument list. Leankeel collects
-those suggestions, applies them from the command line, re-elaborates the file after every
-change, and keeps a change only when the file has fewer diagnostics and no new one.
+those suggestions and applies them from the command line. After every change it re-elaborates
+the file, and it keeps the change only when the file has fewer diagnostics and no new one.
 
 ```console
 $ leankeel --output text source check-source --file Sample.lean
@@ -15,7 +41,7 @@ Sample.lean:10:25: warn [linter.unusedSimpArgs] This simp argument is unused: Na
 $ leankeel source fix-source --file Sample.lean --write
 ```
 
-The sample is `tests/fixtures/Sample.lean`. Leankeel targets Lean 4.35.0.
+You can find the sample in `tests/fixtures/Sample.lean`. Leankeel targets Lean 4.35.0.
 
 ## Run
 
@@ -23,9 +49,9 @@ The sample is `tests/fixtures/Sample.lean`. Leankeel targets Lean 4.35.0.
 nix run github:conao3/rust-leankeel -- source check-source --file Sample.lean
 ```
 
-`nix build` produces `result/bin/leankeel` together with the Lean adapter it calls. `lake` and
-`lean` come from the package; a file inside a Lake project is elaborated with that project's
-imports and `leanOptions`.
+`nix build` produces `result/bin/leankeel` together with the Lean adapter it calls. The package
+brings its own `lake` and `lean`. Leankeel elaborates a file inside a Lake project with that
+project's imports and `leanOptions`.
 
 ## Commands
 
@@ -41,8 +67,8 @@ The input is one of:
 
 - `--file PATH`: a Lean file.
 - `--source TEXT`: literal source, or `file://PATH`; `file:///dev/stdin` reads standard input.
-- `--paths PATH...`: files and directories. Directories are searched for `.lean` files, skipping
-  names that start with `.` and symbolic links.
+- `--paths PATH...`: files and directories. Leankeel searches directories for `.lean` files and
+  skips symbolic links and names that start with `.`.
 
 `--project-dir DIR` names the Lake project; by default it is the nearest directory above the
 input that holds `lakefile.toml` or `lakefile.lean`. `--config FILE` names the configuration;
@@ -83,7 +109,7 @@ Reports every diagnostic whose level is `warn` or `deny`.
 `Line` is 1-based and `Column` is a 0-based count of code points, as Lean prints them. `Offset`
 is a UTF-8 byte offset. With `--file` the object also has `Path`; with `--paths` the result is
 `{"Files": [...], "Summary": {...}}` with one such object per file, or `{"Path", "Error"}` for a
-file that could not be processed.
+file that Leankeel couldn't process.
 
 `--output text` prints one `path:line:column: level [rule] message` line per diagnostic.
 
@@ -94,9 +120,9 @@ The JSON adds `Changed`, `Applied`, `Rejected` and, for `--file` and `--source`,
 `Source`. `--write` writes changed files back. `--output text` prints the fixed source for
 `--file` and `--source`.
 
-Rules are selected by `--rules`, otherwise by `fix.rules` in `leankeel.toml`, otherwise the
-rules that `rule list-rules` marks `default`. A diagnostic whose level is `allow` is never
-fixed.
+`--rules` selects the rules to fix. Without it, Leankeel uses `fix.rules` in `leankeel.toml`,
+and without that, the rules that `rule list-rules` marks `default`. Leankeel doesn't fix a
+diagnostic whose level is `allow`.
 
 ### Exit status
 
@@ -104,7 +130,7 @@ fixed.
 | --- | --- |
 | 0 | No diagnostic is denied. |
 | 252 | The command line is malformed. |
-| 254 | A diagnostic is denied, or an input could not be read or elaborated. |
+| 254 | A diagnostic is denied, or Leankeel couldn't read or elaborate an input. |
 | 255 | Leankeel itself failed. |
 
 ## Rules
@@ -131,8 +157,7 @@ built-in default:
 | `lean.warning` | | warn | none |
 | `lean.info` | | allow | none |
 
-Any rule whose messages carry a suggestion can be fixed by naming it in `--rules` or
-`fix.rules`.
+To fix any other rule whose messages carry a suggestion, name it in `--rules` or `fix.rules`.
 
 ## Configuration
 
@@ -152,21 +177,21 @@ rules = ["linter.unusedVariables", "linter.unusedSimpArgs", "lean.tryThis"]
 
 `[rules]` maps a rule to `allow`, `warn` or `deny`. `[fix] rules` replaces the default set of
 fixed rules. `[lean-options]` sets Lean options for the elaboration, on top of the package's
-`leanOptions`; an option that Lean does not know is an error, and the `weak.` prefix makes it
+`leanOptions`. An option that Lean doesn't know is an error, and the `weak.` prefix makes it
 conditional as in `lake`.
 
 ## How a fix is verified
 
 1. Leankeel elaborates the file and reads the suggestions that Lean embeds in each message.
-2. It applies the selected suggestions that do not overlap, in source order, and elaborates the
+2. It applies the selected suggestions that don't overlap, in source order, and elaborates the
    result.
 3. The result is kept when it has fewer diagnostics than before and every diagnostic it has was
-   already present. Diagnostics are compared by rule, severity and message text, without the
-   text of the suggestion.
-4. When the batch is not kept, each fix is tried alone. A fix that fails alone is reported under
-   `Rejected` and not tried again.
-5. The steps repeat until no selected fix is left, so fixes that overlap, such as two unused
-   arguments of one `simp`, are applied one round after another.
+   already present. Leankeel compares diagnostics by rule, severity and message text, without
+   the text of the suggestion.
+4. When the batch fails, Leankeel tries each fix alone. It reports a fix that fails alone under
+   `Rejected` and doesn't try it again.
+5. The steps repeat until no selected fix is left, so Leankeel applies overlapping fixes, such
+   as two unused arguments of one `simp`, one round after another.
 
 Verification covers the file being fixed. A fix that renames a binder of a declaration, such as
 `y` to `_y`, changes the name that other files may pass as a named argument; build the project
@@ -221,6 +246,7 @@ Mathlib keeps its build free of warnings, so under its own options there is noth
 `results/mathlib/default/` records the run with no extra option. `results/mathlib/analyze-tactics/`
 adds `linter.unusedVariables.analyzeTactics`, which Lean leaves off by default and which also
 reports variables that are unused in tactic proofs.
+
 On v4.35.0 the first finds no diagnostic in 8624 files; with the second, Leankeel applies 2152
 of 2198 fixes (97.91%) in 1007 files and rejects 46 whose edit leaves a new diagnostic or as many.
 
@@ -243,6 +269,7 @@ nix build
 `make check` builds the adapter, checks formatting, runs Clippy, checks the Lean theorems,
 confirms that the generated Rust in `.leanfran/cache/` and `lean/` matches the source, and runs
 the tests.
+
 The `audit/` Lake package runs [leanassay](https://github.com/conao3/lean-leanassay)
 on all seven generated functions called by Rust; `make check` fails on theorem
 coverage gaps, unrefuted mutations that change the output, and vacuous hypotheses.
