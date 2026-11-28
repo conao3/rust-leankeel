@@ -38,7 +38,17 @@ Sample.lean:1:17: warn [linter.unusedVariables] Variable name `y` is not explici
 Sample.lean:7:39: warn [Lean.Linter.deprecatedAttr] `oldAddComm` has been deprecated: Use `Nat.add_comm` instead
 Sample.lean:10:25: warn [linter.unusedSimpArgs] This simp argument is unused: Nat.add_comm
 
-$ leankeel source fix-source --file Sample.lean --write
+$ leankeel --output text source fix-source --file Sample.lean --write
+def unusedArg (x _y : Nat) : Nat :=
+  x + 1
+
+@[deprecated Nat.add_comm (since := "2026-01-01")]
+theorem oldAddComm (a b : Nat) : a + b = b + a := Nat.add_comm a b
+
+example (a b : Nat) : a + b = b + a := Nat.add_comm a b
+
+example (xs : List Nat) : xs ++ [] = xs := by
+  simp [List.append_nil]
 ```
 
 You can find the sample in `tests/fixtures/Sample.lean`. Leankeel targets Lean 4.35.0.
