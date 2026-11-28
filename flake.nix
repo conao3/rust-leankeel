@@ -5,7 +5,7 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     flake-parts.url = "github:hercules-ci/flake-parts";
     treefmt-nix.url = "github:numtide/treefmt-nix";
-    leanfran.url = "github:conao3/lean-leanfran/1bb464c6d419da8037698053f52dd23476a042d9";
+    leanfran.url = "github:conao3/lean-leanfran/420a7dce66dda3cbfd03b884d453cb8de63a0fc6";
     leanfran.inputs.nixpkgs.follows = "nixpkgs";
   };
 
@@ -68,9 +68,9 @@
               pkgs.lean4
               pkgs.gnumake
               pkgs.jq
-              inputs.leanfran.packages.${system}.rust-compiler
+              inputs.leanfran.packages.${system}.leanfran
             ];
-            LEANFRAN_CLI = "${inputs.leanfran.packages.${system}.rust-compiler}/bin/leanfran";
+            LEANFRAN_CLI = "${inputs.leanfran.packages.${system}.leanfran}/bin/leanfran";
             LEAN_SYSROOT = "${pkgs.lean4}";
           };
           treefmt = {
